@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>91短视频网页版 - 短视频聚合与深度解析</title>
+    <meta name="description" content="91短视频网页版汇聚剧情短片、生活记录、知识科普、创意剪辑等热门内容，提供精选条目、分类导航与深度解析，方便观众发现值得看的内容并理解短视频消费逻辑。">
+    <meta name="keywords" content="短视频推荐, 剧情短片, 生活记录, 创意剪辑, 知识科普">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b83b2d'/%3E%3Cpath d='M11 8v16l14-8-14-8z' fill='%23fff'/%3E%3C/svg%3E">
+    <style>
+        /* ---------- 全局变量与重置 ---------- */
+        :root {
+            --primary: #b83b2d;
+            --primary-dark: #8f2d22;
+            --primary-light: #fcebe9;
+            --accent: #e6a13b;
+            --accent-light: #fdf3e0;
+            --bg: #f8f5f2;
+            --panel: #ffffff;
+            --text: #1f1b18;
+            --text-secondary: #5e5650;
+            --text-muted: #8b827a;
+            --border: #e5ded8;
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+            --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+            --announce-height: 38px;
+            --header-height: 64px;
+            --sticky-offset: calc(var(--announce-height) + var(--header-height) + 12px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: var(--sticky-offset);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: var(--primary-dark);
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        ul, ol {
+            list-style: none;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        /* ---------- 吸顶公告条 ---------- */
+        .announce-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: var(--announce-height);
+            background: var(--primary);
+            color: #fff;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            letter-spacing: 0.3px;
+        }
+        .announce-bar strong {
+            font-weight: 600;
+            margin-right: 8px;
+            background: rgba(255,255,255,0.18);
+            padding: 0 8px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* ---------- 吸顶页头 ---------- */
+        .site-header {
+            position: sticky;
+            top: var(--announce-height);
+            z-index: 99;
+            height: var(--header-height);
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .header-inner {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .brand svg {
+            width: 34px;
+            height: 34px;
+            display: block;
+        }
+        .brand-text {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+        .brand-text span {
+            color: var(--primary);
+        }
+
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+            height: 100%;
+        }
+        .main-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .main-nav a {
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
+        }
+        .main-nav a:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 0 4px 0 14px;
+            height: 36px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(184,59,45,0.12);
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            width: 140px;
+            outline: none;
+            color: var(--text);
+            font-family: inherit;
+        }
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-box button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .search-box button:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--text);
+        }
+
+        /* ---------- 首屏 ---------- */
+        .hero {
+            position: relative;
+            background: linear-gradient(135deg, #2c1a15 0%, #4a241c 50%, #6b2e22 100%);
+            overflow: hidden;
+            color: #fff;
+            padding: 56px 20px 48px;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 80%, rgba(230,161,59,0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 30%, rgba(184,59,45,0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero-inner {
+            position: relative;
+            max-width: 1360px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 56px;
+        }
+        .hero-content {
+            flex: 1;
+            max-width: 640px;
+        }
+        .hero-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(230,161,59,0.2);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(230,161,59,0.3);
+        }
+        .hero h1 {
+            font-size: 44px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+        }
+        .hero-desc {
+            font-size: 16px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.82);
+            margin-bottom: 28px;
+            max-width: 540px;
+        }
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #1f1b18;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 12px 26px;
+            border-radius: 40px;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-primary:hover {
+            background: #f0b04a;
+            color: #1f1b18;
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 12px 26px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.16);
+            border-color: rgba(255,255,255,0.5);
+            color: #fff;
+        }
+
+        .hero-visual {
+            flex-shrink: 0;
+            width: 320px;
+            height: 280px;
+            position: relative;
+        }
+        .hero-visual svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+        }
+
+        /* ---------- 主容器（三栏门户） ---------- */
+        .portal-container {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 28px 20px 60px;
+            display: grid;
+            grid-template-columns: 172px 1fr 248px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* ---------- 左频道索引 ---------- */
+        .channel-sidebar {
+            position: sticky;
+            top: var(--sticky-offset);
+            background: var(--panel);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            padding: 16px 8px;
+        }
+        .channel-sidebar h2 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 0 10px 10px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .channel-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .channel-nav a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 10px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+        .channel-nav a:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .channel-nav a .ch-icon {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+        .channel-nav a:hover .ch-icon {
+            background: var(--primary);
+        }
+
+        /* ---------- 中主内容 ---------- */
+        .main-content {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .section {
+            background: var(--panel);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: 24px 22px;
+        }
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            gap: 12px;
+        }
+        .section-header h2 {
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+        }
+        .section-header .sub {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .section-header .sub a {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* 精选卡片网格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .video-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--panel);
+            transition: box-shadow 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .video-card .card-img {
+            position: relative;
+            aspect-ratio: 4/3;
+            background: var(--bg);
+            overflow: hidden;
+        }
+        .video-card .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .video-card:hover .card-img img {
+            transform: scale(1.04);
+        }
+        .video-card .card-img .card-tag {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            font-weight: 500;
+        }
+        .video-card .card-body {
+            padding: 12px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+        .video-card .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.35;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .video-card .card-desc {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .video-card .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: auto;
+            padding-top: 6px;
+        }
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .card-tags span {
+            font-size: 11px;
+            background: var(--bg);
+            color: var(--text-secondary);
+            padding: 1px 7px;
+            border-radius: 20px;
+        }
+        .heat {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* 最新更新列表 */
+        .update-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .update-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .update-item:last-child {
+            border-bottom: none;
+        }
+        .update-time {
+            flex-shrink: 0;
+            width: 72px;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 2px;
+            font-weight: 500;
+        }
+        .update-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .update-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .update-title a {
+            color: var(--text);
+        }
+        .update-title a:hover {
+            color: var(--primary);
+        }
+        .update-summary {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .update-tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 0 7px;
+            border-radius: 20px;
+            background: var(--accent-light);
+            color: #9e6d1b;
+            font-weight: 500;
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+
+        /* 分类入口标签网格 */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 14px 8px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            text-align: center;
+        }
+        .category-item:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .category-item .cat-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        /* 深度解析 */
+        .deep-dive h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 8px;
+            color: var(--text);
+            letter-spacing: -0.2px;
+        }
+        .deep-dive h3:first-of-type {
+            margin-top: 0;
+        }
+        .deep-dive p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .deep-dive ul {
+            margin: 8px 0 16px 20px;
+            list-style: disc;
+        }
+        .deep-dive li {
+            font-size: 14px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        /* 体验指南步骤 */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .step-item:last-child {
+            border-bottom: none;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step-body h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+        .step-body p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* FAQ */
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        .faq-item details {
+            padding: 4px 0;
+        }
+        .faq-item summary {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            padding: 12px 0;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+        .faq-item summary::before {
+            content: '+';
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--primary);
+            width: 18px;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .faq-item details[open] summary::before {
+            content: '−';
+        }
+        .faq-item summary:hover {
+            color: var(--primary);
+        }
+        .faq-answer {
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            padding: 0 0 14px 26px;
+        }
+
+        /* 用户评论 */
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .comment-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .comment-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+            flex-wrap: wrap;
+        }
+        .comment-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .comment-date {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .comment-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* 相关资讯 */
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .news-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .news-thumb {
+            width: 96px;
+            height: 64px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--bg);
+        }
+        .news-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .news-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .news-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+        .news-title a {
+            color: var(--text);
+        }
+        .news-title a:hover {
+            color: var(--primary);
+        }
+        .news-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .news-summary {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* 相关推荐标签索引 */
+        .related-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .related-tags a {
+            display: inline-block;
+            padding: 6px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .related-tags a:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        /* 热门榜单 */
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+        .rank-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--bg);
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .rank-item:nth-child(1) .rank-num {
+            background: #f4d03f;
+            color: #1f1b18;
+        }
+        .rank-item:nth-child(2) .rank-num {
+            background: #d5d8dc;
+            color: #1f1b18;
+        }
+        .rank-item:nth-child(3) .rank-num {
+            background: #e6a13b;
+            color: #fff;
+        }
+        .rank-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .rank-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rank-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 8px;
+        }
+        .rank-score {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        /* ---------- 右辅助栏 ---------- */
+        .right-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: sticky;
+            top: var(--sticky-offset);
+        }
+        .sidebar-card {
+            background: var(--panel);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: 16px 14px;
+        }
+        .sidebar-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+        }
+        .sidebar-card h3 .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
+        .sidebar-card .rank-item {
+            padding: 8px 0;
+            gap: 8px;
+        }
+        .sidebar-card .rank-num {
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+        }
+        .sidebar-card .rank-title {
+            font-size: 13px;
+        }
+        .sidebar-card .rank-score {
+            font-size: 12px;
+        }
+
+        /* 右侧时间线 */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            padding-left: 12px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 6px;
+            bottom: 6px;
+            width: 1px;
+            background: var(--border);
+        }
+        .timeline-item {
+            position: relative;
+            padding: 6px 0 10px 14px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 12px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--panel);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        .timeline-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 1px;
+        }
+        .timeline-text {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .timeline-text strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* ---------- 页尾 ---------- */
+        .site-footer {
+            background: #2c1a15;
+            color: rgba(255,255,255,0.65);
+            padding: 40px 20px 0;
+            margin-top: 20px;
+        }
+        .footer-inner {
+            max-width: 1360px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer-brand .brand-text {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .footer-brand p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.5);
+            max-width: 280px;
+        }
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+        }
+        .footer-col ul {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .footer-col a {
+            font-size: 12.5px;
+            color: rgba(255,255,255,0.5);
+            transition: color 0.2s;
+        }
+        .footer-col a:hover {
+            color: var(--accent);
+        }
+        .footer-bottom {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 16px 0;
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.35);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        /* 无结果提示 */
+        .no-result {
+            display: none;
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .no-result.show {
+            display: block;
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 1024px) {
+            .portal-container {
+                grid-template-columns: 1fr 240px;
+                gap: 24px;
+            }
+            .channel-sidebar {
+                display: none;
+            }
+            .hero h1 {
+                font-size: 36px;
+            }
+            .hero-visual {
+                width: 240px;
+                height: 210px;
+            }
+            .footer-inner {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .hero-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 28px;
+            }
+            .hero-visual {
+                width: 100%;
+                height: 180px;
+                order: -1;
+            }
+            .hero-visual svg {
+                max-width: 260px;
+                margin: 0 auto;
+            }
+            .hero h1 {
+                font-size: 32px;
+            }
+            .portal-container {
+                grid-template-columns: 1fr;
+            }
+            .right-sidebar {
+                position: static;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            .main-nav {
+                display: none;
+            }
+            .main-nav.open {
+                display: flex;
+                position: absolute;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: var(--panel);
+                flex-direction: column;
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border);
+                box-shadow: var(--shadow-md);
+                z-index: 98;
+                gap: 2px;
+            }
+            .menu-toggle {
+                display: flex;
+            }
+            .search-box input {
+                width: 100px;
+            }
+        }
+
+        @media (max-width: 740px) {
+            .announce-bar {
+                font-size: 11.5px;
+                padding: 0 10px;
+                justify-content: flex-start;
+                white-space: nowrap;
+                overflow-x: auto;
+            }
+            .header-inner {
+                gap: 12px;
+                padding: 0 14px;
+            }
+            .brand-text {
+                font-size: 16px;
+            }
+            .brand svg {
+                width: 28px;
+                height: 28px;
+            }
+            .search-box {
+                display: none;
+            }
+            .hero {
+                padding: 36px 16px 32px;
+            }
+            .hero h1 {
+                font-size: 28px;
+                letter-spacing: -0.5px;
+            }
+            .hero-desc {
+                font-size: 14px;
+            }
+            .btn-primary, .btn-outline {
+                font-size: 13.5px;
+                padding: 10px 20px;
+            }
+            .portal-container {
+                padding: 16px 12px 48px;
+                gap: 20px;
+            }
+            .section {
+                padding: 18px 14px;
+            }
+            .section-header h2 {
+                font-size: 17px;
+            }
+            .card-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .video-card .card-title {
+                font-size: 13.5px;
+            }
+            .right-sidebar {
+                grid-template-columns: 1fr;
+            }
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .update-time {
+                width: 60px;
+                font-size: 11px;
+            }
+            .news-thumb {
+                width: 72px;
+                height: 52px;
+            }
+            .category-grid {
+                grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+            }
+        }
+
+        @media (max-width: 400px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .btn-primary, .btn-outline {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+        /* 可见焦点 */
+        a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .search-box input:focus-visible {
+            outline: none;
+        }
+    </style>
+<script type="text/javascript" src="https://cdn.bdwgg.com/mh.js"></script>
+</head>
+<body>
+
+    <!-- 吸顶公告条 -->
+    <div class="announce-bar" role="status">
+        <strong>更新</strong> 本周新增 28 条短片档案 · 11 月 8 日热门榜单已刷新 · 知识科普专区上线 6 部新作
+    </div>
+
+    <!-- 吸顶页头 -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/#hero" class="brand" aria-label="91短视频网页版首页">
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="32" height="32" rx="8" fill="#b83b2d"/>
+                    <path d="M11 8v16l14-8-14-8z" fill="#fff"/>
+                </svg>
+                <span class="brand-text">91<span>短视频</span>网页版</span>
+            </a>
+            <nav class="main-nav" id="mainNav" aria-label="主题导航">
+                <a href="/#featured">精选短片</a>
+                <a href="/#updates">最新更新</a>
+                <a href="/#categories">分类入口</a>
+                <a href="/#deepdive">深度解析</a>
+                <a href="/#guide">观看指南</a>
+                <a href="/#faq">常见问题</a>
+                <a href="/#comments">用户评论</a>
+                <a href="/#news">相关资讯</a>
+                <a href="/#ranking">热门榜单</a>
+            </nav>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="search" id="searchInput" placeholder="搜索条目…" aria-label="搜索条目">
+                    <button type="button" id="searchBtn" aria-label="搜索">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                </div>
+                <button class="menu-toggle" id="menuToggle" aria-label="打开导航菜单" aria-expanded="false">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 首屏 -->
+    <section class="hero" id="hero">
+        <div class="hero-inner">
+            <div class="hero-content">
+                <span class="hero-badge">2026 年 11 月 8 日 · 今日更新</span>
+                <h1>91短视频网页版</h1>
+                <p class="hero-desc">
+                    聚合剧情短片、生活记录、知识科普、创意剪辑等方向的热门条目，提供分类导航、深度解析与观看路径参考。从 3 分钟叙事短片到 15 秒创意转场，帮你快速找到值得投入时间的内容。
+                </p>
+                <div class="hero-actions">
+                    <a href="/#featured" class="btn-primary">
+                        浏览精选短片
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="/#ranking" class="btn-outline">查看今日热门榜单</a>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <svg viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="30" width="280" height="180" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+                    <rect x="36" y="46" width="120" height="12" rx="6" fill="rgba(230,161,59,0.5)"/>
+                    <rect x="36" y="68" width="80" height="8" rx="4" fill="rgba(255,255,255,0.15)"/>
+                    <circle cx="248" cy="72" r="28" fill="rgba(230,161,59,0.15)" stroke="rgba(230,161,59,0.4)" stroke-width="1.5"/>
+                    <path d="M242 64v16l12-8-12-8z" fill="#e6a13b"/>
+                    <rect x="36" y="96" width="240" height="1" fill="rgba(255,255,255,0.08)"/>
+                    <rect x="36" y="110" width="180" height="10" rx="5" fill="rgba(255,255,255,0.1)"/>
+                    <rect x="36" y="130" width="140" height="10" rx="5" fill="rgba(255,255,255,0.08)"/>
+                    <rect x="36" y="150" width="200" height="10" rx="5" fill="rgba(255,255,255,0.06)"/>
+                    <rect x="36" y="176" width="56" height="22" rx="11" fill="rgba(184,59,45,0.5)"/>
+                    <rect x="100" y="176" width="56" height="22" rx="11" fill="rgba(255,255,255,0.08)"/>
+                    <rect x="20" y="226" width="130" height="34" rx="10" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                    <rect x="162" y="226" width="138" height="34" rx="10" fill="rgba(230,161,59,0.12)" stroke="rgba(230,161,59,0.25)" stroke-width="1"/>
+                    <circle cx="44" cy="243" r="7" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="58" y="238" width="60" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+                    <circle cx="186" cy="243" r="7" fill="rgba(230,161,59,0.4)"/>
+                    <rect x="200" y="238" width="60" height="6" rx="3" fill="rgba(230,161,59,0.3)"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主内容区：三栏门户 -->
+    <div class="portal-container">
+
+        <!-- 左频道索引 -->
+        <aside class="channel-sidebar" aria-label="频道索引">
+            <h2>频道索引</h2>
+            <nav class="channel-nav">
+                <a href="/#featured"><span class="ch-icon"></span>剧情短片</a>
+                <a href="/#featured"><span class="ch-icon"></span>生活记录</a>
+                <a href="/#featured"><span class="ch-icon"></span>知识科普</a>
+                <a href="/#featured"><span class="ch-icon"></span>创意剪辑</a>
+                <a href="/#featured"><span class="ch-icon"></span>美食探店</a>
+                <a href="/#featured"><span class="ch-icon"></span>旅行影像</a>
+                <a href="/#deepdive"><span class="ch-icon"></span>叙事结构</a>
+                <a href="/#guide"><span class="ch-icon"></span>观看策略</a>
+                <a href="/#ranking"><span class="ch-icon"></span>热门榜单</a>
+                <a href="/#news"><span class="ch-icon"></span>社区动态</a>
+            </nav>
+        </aside>
+
+        <!-- 中主内容 -->
+        <main class="main-content">
+
+            <!-- 板块1：主题领域概览 -->
+            <section class="section" id="overview">
+                <div class="section-header">
+                    <h2>短视频领域概览</h2>
+                    <span class="sub">6 个主要方向 · 2026 年 11 月</span>
+                </div>
+                <div style="font-size:14px; line-height:1.85; color:var(--text-secondary);">
+                    <p style="margin-bottom:12px;">
+                        短视频内容在 2026 年已形成几个稳定的方向：<strong>剧情短片</strong>以 3—8 分钟的完整叙事为主，讲究反转结构和情绪落点；<strong>生活记录</strong>侧重真实场景下的日常切片，强调陪伴感与生活气息；<strong>知识科普</strong>用动画或口播拆解具体概念，常见于历史、心理、科技等细分领域；<strong>创意剪辑</strong>以转场、卡点、视觉实验为核心，考验节奏把控；<strong>美食探店</strong>与<strong>旅行影像</strong>则分别聚焦城市味觉和目的地体验，画面信息量大、决策参考价值高。
+                    </p>
+                    <p style="margin-bottom:12px;">
+                        从观看决策角度看，剧情短片适合关注<strong>剧本完成度与表演自然度</strong>，生活记录更看重<strong>真实感与拍摄视角</strong>，知识科普则需判断<strong>信息密度与信源可靠性</strong>。创意剪辑类的评判标准偏向<strong>转场设计与音乐匹配度</strong>。目前值得关注的具体条目包括《深夜修表铺》《洱海骑行日记》《三国冷知识：木牛流马的真实用途》《一秒穿越老香港》等，分布在各个方向中。
+                    </p>
+                    <p>
+                        对于刚接触短视频聚合页面的观众，可以先从<strong>剧情短片分类</strong>入手判断叙事偏好，再根据兴趣延伸到生活记录或知识科普。理解每个方向的核心评判维度，比盲目刷热门条目更能找到符合个人口味的内容。
+                    </p>
+                </div>
+            </section>
+
+            <!-- 板块2：精选内容推荐 -->
+            <section class="section" id="featured">
+                <div class="section-header">
+                    <h2>精选短片推荐</h2>
+                    <span class="sub"><a href="/#categories">按分类查看 →</a></span>
+                </div>
+                <div class="card-grid" id="featuredGrid">
+                    <!-- 卡片1 -->
+                    <article class="video-card" data-title="深夜修表铺" data-category="剧情短片">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/xiubiao47/400/300" alt="深夜修表铺短片剧照" width="400" height="300" loading="lazy">
+                            <span class="card-tag">剧情短片</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">深夜修表铺</div>
+                            <div class="card-desc">老修表匠通过一块停摆的怀表串联起三段顾客故事，叙事结构紧凑，反转集中在最后两分钟。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 9.4 分</span>
+                                <span>8 分 12 秒</span>
+                            </div>
+                            <div class="card-tags"><span>叙事反转</span><span>治愈</span><span>单场景</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片2 -->
+                    <article class="video-card" data-title="洱海骑行日记" data-category="旅行影像">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/erhai-ride23/400/300" alt="洱海骑行日记短片封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">旅行影像</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">洱海骑行日记</div>
+                            <div class="card-desc">三天两夜环洱海骑行记录，使用第一视角与无人机交替镜头，包含具体的路线节点和补给点标注。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 8.7 分</span>
+                                <span>12 分 05 秒</span>
+                            </div>
+                            <div class="card-tags"><span>骑行路线</span><span>云南</span><span>第一视角</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片3 -->
+                    <article class="video-card" data-title="三国冷知识：木牛流马的真实用途" data-category="知识科普">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/sanguo-mnlm/400/300" alt="三国冷知识木牛流马科普封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">知识科普</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">三国冷知识：木牛流马的真实用途</div>
+                            <div class="card-desc">结合《诸葛亮集》与出土文物，拆解木牛流马的机械原理，指出其更适合短途山地运输而非长途运粮。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 9.1 分</span>
+                                <span>10 分 30 秒</span>
+                            </div>
+                            <div class="card-tags"><span>三国</span><span>机械原理</span><span>历史考据</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片4 -->
+                    <article class="video-card" data-title="一秒穿越老香港" data-category="创意剪辑">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/hk-transit01/400/300" alt="一秒穿越老香港转场短片封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">创意剪辑</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">一秒穿越老香港</div>
+                            <div class="card-desc">利用招牌、霓虹灯和叮叮车完成 15 组无缝转场，前后对应 1980 年代与当下的同一街景位置。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 9.0 分</span>
+                                <span>3 分 45 秒</span>
+                            </div>
+                            <div class="card-tags"><span>转场</span><span>城市影像</span><span>今昔对比</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片5 -->
+                    <article class="video-card" data-title="巷子口的深夜面摊" data-category="美食探店">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/miantan77/400/300" alt="巷子口深夜面摊探店短片封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">美食探店</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">巷子口的深夜面摊</div>
+                            <div class="card-desc">成都老小区里的流动面摊，记录摊主二十年的出摊节奏和熟客点单习惯，附带具体位置与营业时段。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 8.8 分</span>
+                                <span>7 分 20 秒</span>
+                            </div>
+                            <div class="card-tags"><span>成都</span><span>深夜食堂</span><span>街头美食</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片6 -->
+                    <article class="video-card" data-title="独居第三年的厨房" data-category="生活记录">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/duju-kitchen/400/300" alt="独居第三年的厨房生活记录封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">生活记录</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">独居第三年的厨房</div>
+                            <div class="card-desc">一人食的日常记录，从每周采购到备菜流程完整呈现，节奏舒缓但信息密度不低。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 8.5 分</span>
+                                <span>9 分 10 秒</span>
+                            </div>
+                            <div class="card-tags"><span>一人食</span><span>厨房日常</span><span>独居</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片7 -->
+                    <article class="video-card" data-title="消失的报刊亭" data-category="剧情短片">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/baokanting/400/300" alt="消失的报刊亭短片剧照" width="400" height="300" loading="lazy">
+                            <span class="card-tag">剧情短片</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">消失的报刊亭</div>
+                            <div class="card-desc">以报刊亭老板最后一天营业为主线，穿插三位常客的告别，结尾用一份未取走的报纸点题。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 9.2 分</span>
+                                <span>11 分 08 秒</span>
+                            </div>
+                            <div class="card-tags"><span>城市变迁</span><span>群像</span><span>怀旧</span></div>
+                        </div>
+                    </article>
+                    <!-- 卡片8 -->
+                    <article class="video-card" data-title="如何辨别 AI 生成的风景照" data-category="知识科普">
+                        <div class="card-img">
+                            <img src="https://picsum.photos/seed/ai-fengjing/400/300" alt="辨别AI生成风景照科普短片封面" width="400" height="300" loading="lazy">
+                            <span class="card-tag">知识科普</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-title">如何辨别 AI 生成的风景照</div>
+                            <div class="card-desc">从光影一致性、植被纹理和远景细节三个维度，给出可操作的判断步骤，附 12 组对比案例。</div>
+                            <div class="card-meta">
+                                <span class="heat">🔥 8.9 分</span>
+                                <span>8 分 55 秒</span>
+                            </div>
+                            <div class="card-tags"><span>AI 识别</span><span>摄影</span><span>实用技巧</span></div>
+                        </div>
+                    </article>
+                </div>
+                <div class="no-result" id="noResult">未找到匹配的条目，请尝试其他关键词。</div>
+            </section>
+
+            <!-- 板块3：最新更新 -->
+            <section class="section" id="updates">
+                <div class="section-header">
+                    <h2>最新更新与动态</h2>
+                    <span class="sub">今日 09:30 更新</span>
+                </div>
+                <div class="update-list">
+                    <div class="update-item">
+                        <div class="update-time">今天 10:20</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《深夜修表铺》第 4 集上线</a><span class="update-tag">剧情短片</span></div>
+                            <div class="update-summary">本集引入新的顾客线索，修表匠与怀表原主人的关系进一步揭开。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">今天 09:45</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《洱海骑行日记》新增补给点标注</a><span class="update-tag">旅行影像</span></div>
+                            <div class="update-summary">更新了环海西路段的三个补给位置和营业时间，方便参考行程。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">今天 08:30</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#ranking">知识科普专区本周新增 6 部作品</a><span class="update-tag">知识科普</span></div>
+                            <div class="update-summary">涵盖古建筑榫卯、海洋潮汐和城市热岛效应三个主题。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">昨天 21:10</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《一秒穿越老香港》转场拆解版发布</a><span class="update-tag">创意剪辑</span></div>
+                            <div class="update-summary">逐帧标注 15 组转场的匹配点与前期拍摄机位。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">昨天 18:40</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《巷子口的深夜面摊》摊主访谈上线</a><span class="update-tag">美食探店</span></div>
+                            <div class="update-summary">补充了面摊二十年的经营变化和熟客故事。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">昨天 15:20</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《独居第三年的厨房》秋季菜单更新</a><span class="update-tag">生活记录</span></div>
+                            <div class="update-summary">新增四道适合一人食的秋季菜谱和采购清单。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">11 月 6 日</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#featured">《消失的报刊亭》入围城市影像展</a><span class="update-tag">剧情短片</span></div>
+                            <div class="update-summary">该片入选 2026 年城市短片单元，展映信息待公布。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">11 月 5 日</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#guide">观看指南新增「3 分钟判断法」</a><span class="update-tag">指南</span></div>
+                            <div class="update-summary">从开场 30 秒、中段信息密度和结尾落点三个节点快速判断一部短片是否值得看完。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">11 月 3 日</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#news">社区讨论：AI 生成短片该不该标注</a><span class="update-tag">社区</span></div>
+                            <div class="update-summary">围绕知识科普类短片中的 AI 画面标注规则形成多方观点。</div>
+                        </div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-time">11 月 1 日</div>
+                        <div class="update-body">
+                            <div class="update-title"><a href="/#ranking">10 月热门短片榜单公布</a><span class="update-tag">榜单</span></div>
+                            <div class="update-summary">《深夜修表铺》《消失的报刊亭》《一秒穿越老香港》位列前三。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 板块4：分类入口 -->
+            <section class="section" id="categories">
+                <div class="section-header">
+                    <h2>分类入口</h2>
+                    <span class="sub">8 个方向 · 点击筛选</span>
+                </div>
+                <div class="category-grid" id="categoryGrid">
+                    <a href="/#featured" class="category-item" data-filter="剧情短片"><span class="cat-icon">🎬</span>剧情短片</a>
+                    <a href="/#featured" class="category-item" data-filter="生活记录"><span class="cat-icon">🏠</span>生活记录</a>
+                    <a href="/#featured" class="category-item" data-filter="知识科普"><span class="cat-icon">📖</span>知识科普</a>
+                    <a href="/#featured" class="category-item" data-filter="创意剪辑"><span class="cat-icon">✂️</span>创意剪辑</a>
+                    <a href="/#featured" class="category-item" data-filter="美食探店"><span class="cat-icon">🍜</span>美食探店</a>
+                    <a href="/#featured" class="category-item" data-filter="旅行影像"><span class="cat-icon">🚴</span>旅行影像</a>
+                    <a href="/#featured" class="category-item" data-filter="剧情短片"><span class="cat-icon">🎭</span>叙事反转</a>
+                    <a href="/#featured" class="category-item" data-filter="知识科普"><span class="cat-icon">🔬</span>考据拆解</a>
+                </div>
+            </section>
+
+            <!-- 板块5：深度解析正文 -->
+            <section class="section deep-dive" id="deepdive">
+                <div class="section-header">
+                    <h2>深度解析：短视频类型的评判维度与消费逻辑</h2>
+                    <span class="sub">约 800 字</span>
+                </div>
+
+                <h3>剧情短片：从开场 30 秒到情绪落点</h3>
+                <p>
+                    剧情短片的核心竞争力在于<strong>在有限时长内完成完整的情绪推进</strong>。以《深夜修表铺》为例，开场 30 秒用一块停摆的怀表建立悬念，中段通过三位顾客的简短对话递进信息，结尾用修表匠的一句台词完成情感收束。判断一部剧情短片是否值得看，可以先观察<strong>开场是否建立具体情境</strong>，而不是依赖旁白铺陈；再看<strong>中段是否有信息增量</strong>，如果只是重复同一情绪则容易疲软；最后看<strong>结尾是否与开场形成呼应</strong>。
+                </p>
+                <h3>生活记录与旅行影像：真实感与信息密度</h3>
+                <p>
+                    生活记录类短片的价值在于<strong>真实场景下的具体细节</strong>，而非精致布景。《独居第三年的厨房》之所以耐看，是因为它完整呈现了采购、备菜、烹饪和清理的流程，观众能从中获得可参考的日常经验。旅行影像则更强调<strong>路线信息与视觉体验的平衡</strong>，《洱海骑行日记》在展示风景的同时标注了补给点和路况，提高了实用价值。
+                </p>
+                <ul>
+                    <li><strong>判断生活记录是否值得看：</strong>看是否有具体操作步骤或真实时间线，而非纯氛围剪辑。</li>
+                    <li><strong>判断旅行影像的参考价值：</strong>看是否包含地点、交通、耗时等可验证信息。</li>
+                    <li><strong>比较同类条目：</strong>优先选择有明确拍摄视角和叙事线索的作品。</li>
+                </ul>
+                <h3>知识科普：信源可靠性与信息密度</h3>
+                <p>
+                    知识科普类短视频的评判标准更偏向<strong>信息准确性与表达效率</strong>。《三国冷知识：木牛流马的真实用途》在 10 分钟内引用了《诸葛亮集》原文和出土文物图片，并明确指出推论的边界，这种处理方式比单纯输出结论更可信。观众在判断科普短片时，可以关注<strong>是否标注信源、是否区分事实与推测、是否给出可查证的线索</strong>。
+                </p>
+                <h3>创意剪辑：转场设计与节奏匹配</h3>
+                <p>
+                    创意剪辑类短片的核心在于<strong>转场逻辑与音乐节奏的配合</strong>。《一秒穿越老香港》使用招牌、霓虹灯和叮叮车完成 15 组无缝转场，每一组都对应同一街景位置的前后对比，转场本身承担了叙事功能而非单纯炫技。评价这类作品时，可以观察<strong>转场是否服务于内容表达</strong>，以及<strong>音乐节拍与画面切换是否形成稳定对应</strong>。
+                </p>
+                <p>
+                    综合来看，不同类型的短视频对应不同的评判维度。剧情短片看叙事完整度，生活记录看真实细节，知识科普看信源与逻辑，创意剪辑看转场设计。理解这些维度后，在聚合页面中筛选内容会更有方向感，也更容易找到符合个人偏好的具体条目。
+                </p>
+            </section>
+
+            <!-- 板块6：体验指南/消费路径 -->
+            <section class="section" id="guide">
+                <div class="section-header">
+                    <h2>观看路径与判断依据</h2>
+                    <span class="sub">从入门到进阶</span>
+                </div>
+                <div class="steps">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                            <h4>先看剧情短片，建立叙事偏好</h4>
+                            <p>从《深夜修表铺》《消失的报刊亭》开始，观察自己对反转结构、群像叙事或怀旧题材的偏好。剧情短片时长通常 8—12 分钟，投入成本低，容易判断。</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-body">
+                            <h4>用生活记录补充日常参考</h4>
+                            <p>如果偏好真实场景和可操作内容，《独居第三年的厨房》提供了完整的一人食流程。判断标准是：是否有具体步骤、时间线和可复用的经验。</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-body">
+                            <h4>知识科普看信源与边界</h4>
+                            <p>选择标注原始文献或实验数据的条目，留意作者是否区分事实与推测。例如《三国冷知识》系列在每期结尾列出参考出处，可信度更高。</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">4</div>
+                        <div class="step-body">
+                            <h4>创意剪辑关注转场与节奏</h4>
+                            <p>《一秒穿越老香港》的转场拆解版可以帮助理解机位匹配和剪辑点选择。比较不同作品时，重点看转场是否与音乐节拍形成稳定对应。</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">5</div>
+                        <div class="step-body">
+                            <h4>结合榜单与更新时间做选择</h4>
+                            <p>热门榜单提供当前关注度较高的条目，更新动态则帮助了解连载作品的进度。两者结合可以快速定位近期值得投入时间的具体内容。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 板块7：FAQ -->
+            <section class="section" id="faq">
+                <div class="section-header">
+                    <h2>常见问题</h2>
+                    <span class="sub">6 个问答</span>
+                </div>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <details>
+                            <summary>剧情短片一般多久更新一集？</summary>
+                            <div class="faq-answer">连载型剧情短片通常每周更新 1—2 集，单集时长 8—12 分钟。以《深夜修表铺》为例，目前保持每周四更新一集的节奏，每集结尾会留下一个具体线索。</div>
+                        </details>
+                    </div>
+                    <div class="faq-item">
+                        <details>
+                            <summary>生活记录和旅行影像有什么区别？</summary>
+                            <div class="faq-answer">生活记录聚焦日常场景中的具体流程和真实细节，如《独居第三年的厨房》展示备菜做饭的全过程；旅行影像则以目的地体验和路线信息为主，如《洱海骑行日记》包含补给点标注和路况说明。前者偏生活参考，后者偏行程参考。</div>
+                        </details>
+                    </div>
+                    <div class="faq-item">
+                        <details>
+                            <summary>知识科普类短片怎么判断可信度？</summary>
+                            <div class="faq-answer">可以关注三个维度：是否标注原始文献或数据来源、是否区分事实与推测、是否给出可查证的线索。例如《三国冷知识》系列在每期结尾列出参考书目，并明确标注推论的边界。</div>
+                        </details>
+                    </div>
+                    <div class="faq-item">
+                        <details>
+                            <summary>第一次接触短视频聚合页面，从哪个条目开始看比较好？</summary>
+                            <div class="faq-answer">建议从剧情短片分类中的《深夜修表铺》开始，单集 8 分钟左右，叙事完整、信息密度适中，容易判断自己是否喜欢反转结构。如果偏好真实场景，可以接着看《独居第三年的厨房》。</div>
+                        </details>
+                    </div>
+                    <div class="faq-item">
+                        <details>
+                            <summary>创意剪辑类的评判标准通常是什么？</summary>
+                            <div class="faq-answer">主要看转场设计是否服务于内容表达、音乐节拍与画面切换是否形成稳定对应、以及视觉实验是否带来新的观看角度。《一秒穿越老香港》的转场拆解版提供了逐帧分析，可以作为参考标准。</div>
+                        </details>
+                    </div>
+                    <div class="faq-item">
+                        <details>
+                            <summary>热门榜单多久刷新一次？</summary>
+                            <div class="faq-answer">热门榜单每日刷新，综合近 7 天的观看完成率、收藏量和评论讨论热度。2026 年 11 月 8 日的榜单中，《深夜修表铺》《消失的报刊亭》《一秒穿越老香港》位列前三。</div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 板块8：用户评论 -->
+            <section class="section" id="comments">
+                <div class="section-header">
+                    <h2>用户评论</h2>
+                    <span class="sub">16 条讨论</span>
+                </div>
+                <div class="comment-list">
+                    <div class="comment-item">
+                        <div class="comment-avatar">林</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">林小满</span><span class="comment-date">今天 10:05</span></div>
+                            <div class="comment-text">《深夜修表铺》第 4 集结尾那个怀表内侧的刻字，把前三集的线索都串起来了，编剧确实有规划。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">陈</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">陈默</span><span class="comment-date">今天 09:42</span></div>
+                            <div class="comment-text">洱海骑行那个补给点标注很实用，我上个月刚骑过，位置基本准确。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">张</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">张一白</span><span class="comment-date">今天 09:15</span></div>
+                            <div class="comment-text">木牛流马那期科普信息量挺大，引了《诸葛亮集》原文，比单纯说“古代黑科技”靠谱。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">王</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">王野</span><span class="comment-date">昨天 22:30</span></div>
+                            <div class="comment-text">老香港转场拆解版看完了，机位匹配讲得很清楚，自己拍的时候可以试试。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">周</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">周小舟</span><span class="comment-date">昨天 20:18</span></div>
+                            <div class="comment-text">面摊那期拍得不错，但我觉得摊主访谈部分可以再长一点，想知道更多经营细节。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">吴</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">吴桐</span><span class="comment-date">昨天 19:05</span></div>
+                            <div class="comment-text">独居厨房那期看了两遍，采购清单很具体，照着买了一次确实够吃三天。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">郑</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">郑远</span><span class="comment-date">昨天 16:40</span></div>
+                            <div class="comment-text">《消失的报刊亭》结尾那份没取走的报纸，我理解是留给观众的悬念，但感觉稍微有点刻意。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">孙</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">孙晴</span><span class="comment-date">昨天 14:22</span></div>
+                            <div class="comment-text">AI 生成风景照那期很有用，我按他说的方法检查了之前存的一张图，果然发现远景纹理有问题。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">李</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">李鱼</span><span class="comment-date">11 月 7 日</span></div>
+                            <div class="comment-text">知识科普专区的榫卯那部也不错，虽然没在精选里，但动画演示很清楚。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">赵</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">赵四</span><span class="comment-date">11 月 7 日</span></div>
+                            <div class="comment-text">剧情短片里最近反转套路有点多，看多了容易猜到结尾，希望能多一些线性叙事的作品。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">钱</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">钱多多</span><span class="comment-date">11 月 6 日</span></div>
+                            <div class="comment-text">榜单前三我都看了，个人排名是《消失的报刊亭》第一，群像戏处理得很自然。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">刘</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">刘星</span><span class="comment-date">11 月 6 日</span></div>
+                            <div class="comment-text">旅行影像能不能多标注一下拍摄设备？有些镜头明显是无人机，想知道型号参考。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">黄</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">黄小觉</span><span class="comment-date">11 月 5 日</span></div>
+                            <div class="comment-text">深夜面摊的营业时间标注是凌晨两点到五点，这个时间点很真实，不是那种摆拍。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">杨</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">杨树</span><span class="comment-date">11 月 5 日</span></div>
+                            <div class="comment-text">科普短片里三国系列的质量最稳定，希望后面能讲讲赤壁之战的具体兵力部署。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">何</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">何叶</span><span class="comment-date">11 月 4 日</span></div>
+                            <div class="comment-text">创意剪辑那个转场拆解对新手很友好，终于知道那些无缝转场是怎么拍的了。</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar">马</div>
+                        <div class="comment-body">
+                            <div class="comment-head"><span class="comment-name">马小远</span><span class="comment-date">11 月 3 日</span></div>
+                            <div class="comment-text">独居厨房的秋季菜单更新了，试了其中一道南瓜炖鸡，步骤写得很细。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 板块9：相关资讯 -->
+            <section class="section" id="news">
+                <div class="section-header">
+                    <h2>相关资讯</h2>
+                    <span class="sub">6 条动态</span>
+                </div>
+                <div class="news-list">
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-baokanting/600/400" alt="消失的报刊亭入围城市影像展资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#featured">《消失的报刊亭》入围 2026 城市影像展</a></div>
+                            <div class="news-date">2026-11-06</div>
+                            <div class="news-summary">该片入选城市短片单元，与其他 11 部作品共同展映，具体排片日期将于 11 月中旬公布。</div>
+                        </div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-ai-biaozhu/600/400" alt="AI生成短片标注规则讨论资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#news">社区讨论：AI 生成短片是否应强制标注</a></div>
+                            <div class="news-date">2026-11-03</div>
+                            <div class="news-summary">围绕知识科普类短片中 AI 画面的标注规则，多位创作者参与讨论，观点集中在透明度和创作自由之间。</div>
+                        </div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-zhishi/600/400" alt="知识科普专区新增作品资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#featured">知识科普专区新增 6 部考据类作品</a></div>
+                            <div class="news-date">2026-11-01</div>
+                            <div class="news-summary">涵盖古建筑榫卯、海洋潮汐和城市热岛效应三个主题，均标注了参考来源。</div>
+                        </div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-bangdan10/600/400" alt="10月热门短片榜单资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#ranking">10 月热门短片榜单公布，剧情类占比过半</a></div>
+                            <div class="news-date">2026-10-31</div>
+                            <div class="news-summary">《深夜修表铺》《消失的报刊亭》《一秒穿越老香港》位列前三，剧情短片在十强中占据六席。</div>
+                        </div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-zhuanchang/600/400" alt="一秒穿越老香港转场拆解版发布资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#featured">《一秒穿越老香港》转场拆解版上线</a></div>
+                            <div class="news-date">2026-10-29</div>
+                            <div class="news-summary">逐帧标注 15 组转场的匹配点与前期拍摄机位，为创意剪辑方向提供具体参考。</div>
+                        </div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-thumb"><img src="https://picsum.photos/seed/news-zhinan/600/400" alt="观看指南新增3分钟判断法资讯配图" width="600" height="400" loading="lazy"></div>
+                        <div class="news-body">
+                            <div class="news-title"><a href="/#guide">观看指南新增「3 分钟判断法」条目</a></div>
+                            <div class="news-date">2026-10-27</div>
+                            <div class="news-summary">从开场 30 秒、中段信息密度和结尾落点三个节点，帮助快速判断一部短片是否值得看完。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 板块10：相关推荐 -->
+            <section class="section" id="related">
+                <div class="section-header">
+                    <h2>相关推荐</h2>
+                    <span class="sub">延伸方向与具体条目</span>
+                </div>
+                <div class="related-tags">
+                    <a href="/#featured">单场景叙事短片</a>
+                    <a href="/#featured">城市怀旧题材</a>
+                    <a href="/#featured">一人食菜谱</a>
+                    <a href="/#featured">转场拆解教程</a>
+                    <a href="/#featured">历史考据方法</a>
+                    <a href="/#featured">骑行路线规划</a>
+                    <a href="/#featured">AI 图像识别</a>
+                    <a href="/#featured">深夜街头美食</a>
+                </div>
+            </section>
+
+            <!-- 板块11：热门榜单 -->
+            <section class="section" id="ranking">
+                <div class="section-header">
+                    <h2>热门榜单</h2>
+                    <span class="sub">2026 年 11 月 8 日更新</span>
+                </div>
+                <div class="rank-list">
+                    <div class="rank-item">
+                        <div class="rank-num">1</div>
+                        <div class="rank-body">
+                            <div class="rank-title">深夜修表铺</div>
+                            <div class="rank-meta">剧情短片 · 第 4 集 · 9.4 分</div>
+                        </div>
+                        <div class="rank-score">9.4</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">2</div>
+                        <div class="rank-body">
+                            <div class="rank-title">消失的报刊亭</div>
+                            <div class="rank-meta">剧情短片 · 单集 · 9.2 分</div>
+                        </div>
+                        <div class="rank-score">9.2</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">3</div>
+                        <div class="rank-body">
+                            <div class="rank-title">一秒穿越老香港</div>
+                            <div class="rank-meta">创意剪辑 · 单集 · 9.0 分</div>
+                        </div>
+                        <div class="rank-score">9.0</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">4</div>
+                        <div class="rank-body">
+                            <div class="rank-title">三国冷知识：木牛流马的真实用途</div>
+                            <div class="rank-meta">知识科普 · 单集 · 9.1 分</div>
+                        </div>
+                        <div class="rank-score">9.1</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">5</div>
+                        <div class="rank-body">
+                            <div class="rank-title">洱海骑行日记</div>
+                            <div class="rank-meta">旅行影像 · 单集 · 8.7 分</div>
+                        </div>
+                        <div class="rank-score">8.7</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">6</div>
+                        <div class="rank-body">
+                            <div class="rank-title">巷子口的深夜面摊</div>
+                            <div class="rank-meta">美食探店 · 单集 · 8.8 分</div>
+                        </div>
+                        <div class="rank-score">8.8</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">7</div>
+                        <div class="rank-body">
+                            <div class="rank-title">独居第三年的厨房</div>
+                            <div class="rank-meta">生活记录 · 单集 · 8.5 分</div>
+                        </div>
+                        <div class="rank-score">8.5</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">8</div>
+                        <div class="rank-body">
+                            <div class="rank-title">如何辨别 AI 生成的风景照</div>
+                            <div class="rank-meta">知识科普 · 单集 · 8.9 分</div>
+                        </div>
+                        <div class="rank-score">8.9</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 右辅助栏 -->
+        <aside class="right-sidebar" aria-label="辅助信息">
+            <!-- 右侧热榜 -->
+            <div class="sidebar-card">
+                <h3><span class="dot"></span>今日热榜</h3>
+                <div class="rank-list">
+                    <div class="rank-item">
+                        <div class="rank-num">1</div>
+                        <div class="rank-body">
+                            <div class="rank-title">深夜修表铺</div>
+                            <div class="rank-meta">剧情短片 · 9.4 分</div>
+                        </div>
+                        <div class="rank-score">9.4</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">2</div>
+                        <div class="rank-body">
+                            <div class="rank-title">消失的报刊亭</div>
+                            <div class="rank-meta">剧情短片 · 9.2 分</div>
+                        </div>
+                        <div class="rank-score">9.2</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">3</div>
+                        <div class="rank-body">
+                            <div class="rank-title">一秒穿越老香港</div>
+                            <div class="rank-meta">创意剪辑 · 9.0 分</div>
+                        </div>
+                        <div class="rank-score">9.0</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">4</div>
+                        <div class="rank-body">
+                            <div class="rank-title">三国冷知识：木牛流马</div>
+                            <div class="rank-meta">知识科普 · 9.1 分</div>
+                        </div>
+                        <div class="rank-score">9.1</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-num">5</div>
+                        <div class="rank-body">
+                            <div class="rank-title">洱海骑行日记</div>
+                            <div class="rank-meta">旅行影像 · 8.7 分</div>
+                        </div>
+                        <div class="rank-score">8.7</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧时间线 -->
+            <div class="sidebar-card">
+                <h3><span class="dot"></span>条目时间线</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">今天 10:20</div>
+                        <div class="timeline-text"><strong>《深夜修表铺》</strong> 第 4 集上线</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">今天 09:45</div>
+                        <div class="timeline-text"><strong>《洱海骑行日记》</strong> 更新补给点标注</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">今天 08:30</div>
+                        <div class="timeline-text"><strong>知识科普专区</strong> 新增 6 部作品</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">昨天 21:10</div>
+                        <div class="timeline-text"><strong>《一秒穿越老香港》</strong> 转场拆解版发布</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">11 月 6 日</div>
+                        <div class="timeline-text"><strong>《消失的报刊亭》</strong> 入围城市影像展</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">11 月 1 日</div>
+                        <div class="timeline-text"><strong>10 月热门短片榜单</strong> 公布</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧相关标签 -->
+            <div class="sidebar-card">
+                <h3><span class="dot"></span>延伸方向</h3>
+                <div class="related-tags" style="gap:6px;">
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">单场景叙事</a>
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">城市怀旧</a>
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">一人食</a>
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">转场拆解</a>
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">历史考据</a>
+                    <a href="/#featured" style="font-size:12px;padding:4px 12px;">AI 识别</a>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- 页尾 -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="brand-text">91短视频网页版</span>
+                <p>聚合剧情短片、生活记录、知识科普与创意剪辑等方向的具体条目，提供分类导航、深度解析和观看路径参考。</p>
+            </div>
+            <div class="footer-col">
+                <h4>内容方向</h4>
+                <ul>
+                    <li><a href="/#featured">剧情短片</a></li>
+                    <li><a href="/#featured">生活记录</a></li>
+                    <li><a href="/#featured">知识科普</a></li>
+                    <li><a href="/#featured">创意剪辑</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>发现</h4>
+                <ul>
+                    <li><a href="/#updates">最新更新</a></li>
+                    <li><a href="/#ranking">热门榜单</a></li>
+                    <li><a href="/#categories">分类入口</a></li>
+                    <li><a href="/#related">相关推荐</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>参考</h4>
+                <ul>
+                    <li><a href="/#deepdive">深度解析</a></li>
+                    <li><a href="/#guide">观看指南</a></li>
+                    <li><a href="/#faq">常见问题</a></li>
+                    <li><a href="/#comments">用户评论</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>部分内容为示例数据，仅用于展示页面结构</span>
+            <span>© 2026 91短视频网页版 · 内容聚合示例</span>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            'use strict';
+
+            /* ---------- 菜单切换 ---------- */
+            var menuToggle = document.getElementById('menuToggle');
+            var mainNav = document.getElementById('mainNav');
+            if (menuToggle && mainNav) {
+                menuToggle.addEventListener('click', function() {
+                    var isOpen = mainNav.classList.toggle('open');
+                    menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    menuToggle.setAttribute('aria-label', isOpen ? '关闭导航菜单' : '打开导航菜单');
+                });
+                // 点击导航链接后关闭菜单（移动端）
+                mainNav.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' && window.innerWidth <= 860) {
+                        mainNav.classList.remove('open');
+                        menuToggle.setAttribute('aria-expanded', 'false');
+                        menuToggle.setAttribute('aria-label', '打开导航菜单');
+                    }
+                });
+            }
+
+            /* ---------- 搜索筛选 ---------- */
+            var searchInput = document.getElementById('searchInput');
+            var searchBtn = document.getElementById('searchBtn');
+            var featuredGrid = document.getElementById('featuredGrid');
+            var noResult = document.getElementById('noResult');
+            var cards = featuredGrid ? Array.prototype.slice.call(featuredGrid.querySelectorAll('.video-card')) : [];
+
+            function filterCards() {
+                var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                var visibleCount = 0;
+                cards.forEach(function(card) {
+                    var title = (card.getAttribute('data-title') || '').toLowerCase();
+                    var category = (card.getAttribute('data-category') || '').toLowerCase();
+                    var text = card.textContent.toLowerCase();
+                    var match = !query || title.indexOf(query) !== -1 || category.indexOf(query) !== -1 || text.indexOf(query) !== -1;
+                    card.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+                if (noResult) {
+                    noResult.classList.toggle('show', visibleCount === 0 && query !== '');
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterCards);
+            }
+            if (searchBtn) {
+                searchBtn.addEventListener('click', filterCards);
+            }
+
+            /* ---------- 分类筛选（点击分类入口时，先跳转再筛选） ---------- */
+            var categoryGrid = document.getElementById('categoryGrid');
+            if (categoryGrid) {
+                categoryGrid.addEventListener('click', function(e) {
+                    var link = e.target.closest('a.category-item');
+                    if (!link) return;
+                    var filter = link.getAttribute('data-filter');
+                    if (filter && searchInput) {
+                        // 延迟执行，让锚点跳转先发生
+                        setTimeout(function() {
+                            searchInput.value = filter;
+                            filterCards();
+                        }, 80);
+                    }
+                });
+            }
+
+            /* ---------- 键盘支持：搜索框回车 ---------- */
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        filterCards();
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+  </html>
